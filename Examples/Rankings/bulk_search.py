@@ -1,12 +1,9 @@
-from api import BrightLocalAPI, BrightLocalBatch
+from api import BrightLocalAPI
 import json
 from dotenv import find_dotenv, load_dotenv
 import os
 import time
-from requests.exceptions import RequestException
 
-class BatchCreateException(RequestException):
-    pass
 
 load_dotenv(find_dotenv())
 directory = 'google'
@@ -15,11 +12,10 @@ directory = 'google'
 api_key = os.getenv('BRIGHT_LOCAL_API_KEY')
 api_secret = os.getenv('BRIGHT_LOCAL_API_SECRET')
 api = BrightLocalAPI(api_key, api_secret)
-batch_id = api.create_batch()
-print(f"Created batch ID {batch_id}")
+api.batch_id = api.create_batch()
+print(f"Created batch ID {api.batch_id}")
 
 # Step 2: Add directory jobs to batch
-batch = BrightLocalBatch(api_key, api_secret, batch_id)
 searches = ['vetinerary', 'vetinerary near me']
 job_params = {
     'search-engine': directory,
@@ -29,18 +25,18 @@ job_params = {
     'urls': json.dumps(['https://mypetswellness.net/']),
     'business-names': json.dumps(['mypetswellness'])
 }
-try:
-    response = batch.add_job('/rankings/bulk-search', job_params)
-    print(f"Added job with ID {response.get_result()['job-id']}")
-except BatchCreateException as e:
-    print(f"Error, job for directory \"{directory}\" not added. Message: {e.message}")
+#try:
+response = api.add_job('https://tools.brightlocal.com/seo-tools/api/v4/rankings/bulk-search', job_params)
+print(f"Added job with ID {response.get_result()['job-id']}")
+#except Exception as e:
+   # print(f"Error, job for directory \"{directory}\" not added. Message: {e.message}")
 
 # Commit batch (to indicate that all jobs have been added and that processing should start)
-batch.commit()
+api.batch_id.commit()
 print("Batch committed successfully, awaiting results.")
 
 while True:
-    response = batch.get_results()
+    response = api.batch_id.get_results()
     if response.get_result()['status'] in ['Stopped', 'Finished']:
         print(response.get_result())
         break
