@@ -2,14 +2,17 @@ from api import BrightLocalAPI
 import json
 from dotenv import find_dotenv, load_dotenv
 import os
+import time
 
 load_dotenv(find_dotenv())
 directory = 'google'
 
 # Step 1: Create a new batch
-api = BrightLocalAPI()
-batch = api.create_batch()
-print(f"Created batch ID {batch.get_id()}")
+api_key = os.getenv('BRIGHT_LOCAL_API_KEY')
+api_secret = os.getenv('BRIGHT_LOCAL_API_SECRET')
+api = BrightLocalAPI(api_key, api_secret)
+batch_id = api.create_batch()
+print(f"Created batch ID {batch_id}")
 
 # Step 2: Add directory jobs to batch
 searches = ['restaurant new york', 'restaurant manhattan', 'restaurant 10019']

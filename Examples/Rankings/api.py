@@ -35,9 +35,9 @@ class BrightLocalAPI:
     BASE_URL = 'https://tools.brightlocal.com/seo-tools/api'
     MAX_EXPIRY = 1800
 
-    def __init__(self):
-        self.api_key = os.getenv('BRIGHT_LOCAL_API_KEY')
-        self.api_secret = os.getenv('BRIGHT_LOCAL_API_SECRET')
+    def __init__(self, api_key: str, api_secret: str) -> None:
+        self.api_key = api_key
+        self.api_secret = api_secret
 
     def _get_auth_params(self):
         expires = int(time.time()) + self.MAX_EXPIRY
@@ -71,7 +71,6 @@ class BrightLocalAPI:
         url = self.BASE_URL + f'/v4/batch/{batch_id}'
         response = self._make_request(url, method='GET')
         return response.getResult()
-
 
 
 if __name__ == '__main__':
