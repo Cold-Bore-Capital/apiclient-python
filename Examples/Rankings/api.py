@@ -12,7 +12,6 @@ load_dotenv(find_dotenv())
 class BrightLocalException(Exception):
     pass
 
-
 class BatchCreateException(BrightLocalException):
     def __init__(self, message, errors):
         super().__init__(message)
@@ -72,9 +71,47 @@ class BrightLocalAPI:
         response = self._make_request(url, method='GET')
         return response.getResult()
 
+class BrightLocalBatch:
+    BASE_URL = 'https://tools.brightlocal.com/seo-tools/api'
+    API_VERSION = 'v4'
+    HEADERS = {'Content-Type': 'application/json'}
+
+    def __init__(self, api_key, api_secret, batch_id):
+        self.api_key = api_key
+        self.api_secret = api_secret
+        self.batch_id = None
+
+    def create_batch(self):
+        url = f"{self.BASE_URL}/{self.API_VERSION}/batch/create"
+        data = {'api-key': self.api_key, 'api-secret': self.api_secret}
+        response = requests.post(url, headers=self.HEADERS, data=json.dumps(data))
+        response.raise_for_status()
+        self.batch_id = response.json()['batch-id']
+        return self.batch_id
+
+    def add_job(self, endpoint, params):
+        url = f"{self.BASE_URL}/{self.API_VERSION}{endpoint}"
+        params.update({'batch-id': self.batch_id, 'api-key': self.api_key, 'api-secret': self.api_secret})
+        response = requests.post(url, headers=self.HEADERS, data=json.dumps(params))
+        response.raise_for_status()
+        return response
+
+    def commit(self):
+        url = f"{self.BASE_URL}/{self.API_VERSION}/batch/commit"
+        data = {'batch-id': self.batch_id, 'api-key': self.api_key, 'api-secret': self.api_secret}
+        response = requests.post(url, headers=self.HEADERS, data=json.dumps(data))
+        response.raise_for_status()
+        return response
+
+    def get_results(self):
+        url = f"{self.BASE_URL}/{self.API_VERSION}/batch/get-results"
+        params = {'batch-id': self.batch_id, 'api-key': self.api_key, 'api-secret': self.api_secret}
+        response = requests.get(url, headers=self.HEADERS, params=params)
+        response.raise_for_status()
+        return response
 
 if __name__ == '__main__':
-    api = BrightLocalAPI()
+    api = BrightLocalAPI('api_key', 'api_secret')
     batch_id = api.create_batch()
     print(batch_id)
 
