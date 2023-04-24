@@ -84,6 +84,7 @@ class BrightLocalAPI:
 
     def add_job(self, resource: str, params: dict) -> ApiResponse:
         params['batch-id'] = self.batch_id
+        params = json.dumps(params)
         response = self._make_request(url=resource, params=params)
         if not response.isSuccess():
             raise Exception('An error occurred and we weren\'t able to add the job to the batch.')
